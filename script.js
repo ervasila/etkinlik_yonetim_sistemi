@@ -1,4 +1,5 @@
 const STORAGE_KEY = "event-management-system-events";
+const TICKETMASTER_KEY = "event-management-ticketmaster-key";
 const weatherCodeLabels = {
   0: "Acik",
   1: "Az bulutlu",
@@ -80,11 +81,17 @@ const dateInput = document.querySelector("#date");
 const timeInput = document.querySelector("#time");
 const locationInput = document.querySelector("#location");
 const capacityInput = document.querySelector("#capacity");
+const ticketmasterKeyInput = document.querySelector("#ticketmasterKey");
+const concertCityInput = document.querySelector("#concertCity");
+const fetchConcertsButton = document.querySelector("#fetchConcerts");
+const concertStatus = document.querySelector("#concertStatus");
+const concertList = document.querySelector("#concertList");
 
 let events = JSON.parse(localStorage.getItem(STORAGE_KEY)) || sampleEvents;
 
 dateInput.value = new Date().toISOString().split("T")[0];
 timeInput.value = "12:00";
+ticketmasterKeyInput.value = localStorage.getItem(TICKETMASTER_KEY) || "";
 
 function saveEvents() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
@@ -98,6 +105,21 @@ function formatDate(date, time) {
   });
 
   return `${formatter.format(new Date(date))} - ${time}`;
+}
+
+function formatConcertDate(dateValue, timeValue) {
+  if (!dateValue) {
+    return "Tarih belirtilmemis";
+  }
+
+  const formatter = new Intl.DateTimeFormat("tr-TR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+  const time = timeValue ? ` - ${timeValue}` : "";
+
+  return `${formatter.format(new Date(dateValue))}${time}`;
 }
 
 function getFilteredEvents() {
@@ -240,6 +262,103 @@ async function getWeatherForEvent(eventItem) {
 
   return `${location.name}: ${label}, ${min}°C / ${max}°C`;
 }
+
+function renderConcerts(concerts) {
+  concertList.innerHTML = "";
+
+  if (!concerts.length) {
+    concertStatus.textContent = "Bu sehir icin konser bulunamadi.";
+    return;
+  }
+
+  concertStatus.textContent = `${concerts.length} konser bulundu.`;
+
+  concerts.forEach((concert) => {
+    const venue = concert._embedded?.venues?.[0];
+    const date = concert.dates?.start?.localDate;
+    const time = concert.dates?.start?.localTime;
+    const card = document.createElement("article");
+    const title = document.createElement("h3");
+    const dateText = document.createElement("p");
+    const venueText = document.createElement("p");
+    const link = document.createElement("a");
+
+    card.className = "concert-card";
+    title.textContent = concert.name;
+    dateText.textContent = formatConcertDate(date, time);
+    venueText.textContent = `${venue?.name || "Mekan belirtilmemis"}${
+      venue?.city?.name ? `, ${venue.city.name}` : ""
+    }`;
+    link.href = concert.url;
+    link.target = "_blank";
+    link.rel = "noreferrer";
+    link.textContent = "Detaylari Ac";
+
+    card.append(title, dateText, venueText, link);
+
+    concertList.appendChild(card);
+  });
+}
+
+async function fetchConcerts() {
+  const apiKey = ticketmasterKeyInput.value.trim();
+  const city = concertCityInput.value.trim();
+
+  concertStatus.classList.remove("error");
+  concertList.innerHTML = "";
+
+  if (!apiKey) {
+    concertStatus.classList.add("error");
+    concertStatus.textContent = "Ticketmaster API key gerekli.";
+    ticketmasterKeyInput.focus();
+    return;
+  }
+
+  if (!city) {
+    concertStatus.classList.add("error");
+    concertStatus.textContent = "Konser aramak icin sehir yaz.";
+    concertCityInput.focus();
+    return;
+  }
+
+  localStorage.setItem(TICKETMASTER_KEY, apiKey);
+  fetchConcertsButton.disabled = true;
+  concertStatus.textContent = "Konserler aliniyor...";
+
+  try {
+    const url = new URL("https://app.ticketmaster.com/discovery/v2/events.json");
+    url.searchParams.set("apikey", apiKey);
+    url.searchParams.set("city", city);
+    url.searchParams.set("classificationName", "music");
+    url.searchParams.set("sort", "date,asc");
+    url.searchParams.set("size", "6");
+    url.searchParams.set("locale", "*");
+
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error("Konser API istegi basarisiz oldu. API key veya sehir bilgisini kontrol et.");
+    }
+
+    const data = await response.json();
+    const concerts = data._embedded?.events || [];
+
+    renderConcerts(concerts);
+  } catch (error) {
+    concertStatus.classList.add("error");
+    concertStatus.textContent = error.message;
+  } finally {
+    fetchConcertsButton.disabled = false;
+  }
+}
+
+fetchConcertsButton.addEventListener("click", fetchConcerts);
+
+concertCityInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    fetchConcerts();
+  }
+});
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();

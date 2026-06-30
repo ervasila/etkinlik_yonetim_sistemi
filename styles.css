@@ -126,6 +126,10 @@ h1 {
   align-items: start;
 }
 
+.concert-panel {
+  margin-top: 18px;
+}
+
 .panel {
   padding: 24px;
 }
@@ -208,6 +212,11 @@ textarea:focus {
   background: var(--accent-dark);
 }
 
+.primary-button:disabled {
+  background: #9aa7bd;
+  cursor: not-allowed;
+}
+
 .list-heading {
   display: grid;
   gap: 16px;
@@ -217,6 +226,73 @@ textarea:focus {
   display: grid;
   grid-template-columns: minmax(180px, 1fr) 170px 160px;
   gap: 10px;
+}
+
+.concert-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.concert-heading a {
+  color: var(--accent-dark);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.concert-controls {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.1fr) minmax(180px, 0.8fr) 180px;
+  gap: 12px;
+  align-items: end;
+}
+
+.concert-controls label {
+  margin-bottom: 0;
+}
+
+.api-status {
+  margin: 16px 0;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.api-status.error {
+  color: var(--danger);
+}
+
+.concert-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.concert-card {
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 16px;
+}
+
+.concert-card h3 {
+  margin-bottom: 0;
+  font-size: 1rem;
+}
+
+.concert-card p {
+  margin-bottom: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.concert-card a {
+  color: var(--accent-dark);
+  font-weight: 800;
+  text-decoration: none;
 }
 
 .event-list {
@@ -392,7 +468,8 @@ dd {
 @media (max-width: 980px) {
   .stats-grid,
   .workspace,
-  .event-list {
+  .event-list,
+  .concert-list {
     grid-template-columns: 1fr;
   }
 
@@ -415,8 +492,14 @@ dd {
   .stats-grid,
   .two-column,
   .toolbar,
+  .concert-heading,
+  .concert-controls,
   .event-meta {
     grid-template-columns: 1fr;
+  }
+
+  .concert-heading {
+    display: grid;
   }
 
   .panel {

@@ -13,6 +13,7 @@ tarayici tabanli bir yonetim paneli.
 - Etkinlik silme
 - Ozet istatistikler
 - Open-Meteo API ile lokasyona gore hava durumu cekme
+- Ticketmaster API ile sehre gore konser listeleme
 - LocalStorage ile veri saklama
 - Mobil uyumlu arayuz
 
@@ -23,6 +24,7 @@ tarayici tabanli bir yonetim paneli.
 - JavaScript
 - Open-Meteo Geocoding API
 - Open-Meteo Forecast API
+- Ticketmaster Discovery API
 
 ## Calistirma
 
@@ -57,5 +59,5 @@ etkinlik_yonetim_sistemi/
 - Katilimci listesi
 - CSV disari aktarma
 - Takvim gorunumu
-- Ticketmaster veya benzeri API ile konser listeleme
+- Konserleri tek tikla etkinlik listesine aktarma
 - Kullanici girisi ve backend
