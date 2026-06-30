@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Etkinlik Yonetim Sistemi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <div class="hero-content">
+          <p class="eyebrow">Etkinlik Yonetim Sistemi</p>
+          <h1>Etkinlikleri planla, kontenjanlari takip et, kayitlari yonet.</h1>
+          <p>
+            Konferans, atölye, meetup ve sosyal etkinlikler icin sade bir
+            yonetim paneli.
+          </p>
+        </div>
+      </section>
+
+      <section class="stats-grid" aria-label="Etkinlik istatistikleri">
+        <article class="stat-box">
+          <span>Toplam Etkinlik</span>
+          <strong id="totalEvents">0</strong>
+        </article>
+        <article class="stat-box">
+          <span>Aktif Etkinlik</span>
+          <strong id="activeEvents">0</strong>
+        </article>
+        <article class="stat-box">
+          <span>Toplam Katilimci</span>
+          <strong id="totalAttendees">0</strong>
+        </article>
+        <article class="stat-box">
+          <span>Doluluk Orani</span>
+          <strong id="occupancyRate">0%</strong>
+        </article>
+      </section>
+
+      <section class="workspace">
+        <form class="panel event-form" id="eventForm">
+          <div class="panel-heading">
+            <h2>Yeni Etkinlik</h2>
+            <p>Etkinlik bilgilerini ekle ve listeyi guncelle.</p>
+          </div>
+
+          <label>
+            Etkinlik Adi
+            <input id="title" type="text" placeholder="Orn. Yazilim Atolyesi" required />
+          </label>
+
+          <label>
+            Aciklama
+            <textarea id="description" rows="3" placeholder="Kisa etkinlik aciklamasi" required></textarea>
+          </label>
+
+          <div class="two-column">
+            <label>
+              Kategori
+              <select id="category">
+                <option value="Konferans">Konferans</option>
+                <option value="Atolye">Atolye</option>
+                <option value="Meetup">Meetup</option>
+                <option value="Sosyal">Sosyal</option>
+                <option value="Egitim">Egitim</option>
+              </select>
+            </label>
+            <label>
+              Durum
+              <select id="status">
+                <option value="Planlandi">Planlandi</option>
+                <option value="Yayinda">Yayinda</option>
+                <option value="Tamamlandi">Tamamlandi</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="two-column">
+            <label>
+              Tarih
+              <input id="date" type="date" required />
+            </label>
+            <label>
+              Saat
+              <input id="time" type="time" required />
+            </label>
+          </div>
+
+          <div class="two-column">
+            <label>
+              Lokasyon
+              <input id="location" type="text" placeholder="Orn. Istanbul" required />
+            </label>
+            <label>
+              Kontenjan
+              <input id="capacity" type="number" min="1" placeholder="80" required />
+            </label>
+          </div>
+
+          <button class="primary-button" type="submit">Etkinlik Ekle</button>
+        </form>
+
+        <section class="panel list-panel">
+          <div class="panel-heading list-heading">
+            <div>
+              <h2>Etkinlikler</h2>
+              <p id="resultCount">0 kayit</p>
+            </div>
+            <div class="toolbar">
+              <input id="searchInput" type="search" placeholder="Etkinlik ara" />
+              <select id="categoryFilter">
+                <option value="all">Tum kategoriler</option>
+                <option value="Konferans">Konferans</option>
+                <option value="Atolye">Atolye</option>
+                <option value="Meetup">Meetup</option>
+                <option value="Sosyal">Sosyal</option>
+                <option value="Egitim">Egitim</option>
+              </select>
+              <select id="statusFilter">
+                <option value="all">Tum durumlar</option>
+                <option value="Planlandi">Planlandi</option>
+                <option value="Yayinda">Yayinda</option>
+                <option value="Tamamlandi">Tamamlandi</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="empty-state" id="emptyState">
+            <strong>Kayit bulunamadi.</strong>
+            <span>Yeni bir etkinlik ekleyebilir veya filtreleri temizleyebilirsin.</span>
+          </div>
+
+          <div class="event-list" id="eventList"></div>
+        </section>
+      </section>
+    </main>
+
+    <template id="eventTemplate">
+      <article class="event-card">
+        <div class="event-topline">
+          <span class="badge"></span>
+          <span class="status"></span>
+        </div>
+        <h3></h3>
+        <p class="event-description"></p>
+        <dl class="event-meta">
+          <div>
+            <dt>Tarih</dt>
+            <dd data-field="date"></dd>
+          </div>
+          <div>
+            <dt>Lokasyon</dt>
+            <dd data-field="location"></dd>
+          </div>
+        </dl>
+        <div class="capacity-row">
+          <span data-field="capacityText"></span>
+          <div class="capacity-track">
+            <span data-field="capacityBar"></span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="secondary-button" data-action="register" type="button">Katilimci Ekle</button>
+          <button class="danger-button" data-action="delete" type="button">Sil</button>
+        </div>
+      </article>
+    </template>
+
+    <script src="script.js"></script>
+  </body>
+</html>
