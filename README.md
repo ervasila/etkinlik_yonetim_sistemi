@@ -21,6 +21,10 @@ tarayici tabanli bir yonetim paneli.
 - Open-Meteo API ile lokasyona gore hava durumu cekme
 - Ticketmaster API ile sehre gore konser listeleme
 - Konser kartlarinda API'den gelen etkinlik fotograflari
+- Konser sonucunda gorsel yoksa otomatik yedek konser gorseli
+- Konser kartlarinda fiyat bilgisi alani
+- Konser tarihi icin hava durumu alani
+- Biletix'e yonlendirmeden uygulama ici sepet arayuzu
 - Kullaniciya API key gostermeden backend proxy ile konser arama
 - Manifest, Melike Sahin ve benzeri sanatcilar icin hizli arama butonlari
 - LocalStorage ile veri saklama

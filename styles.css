@@ -246,7 +246,8 @@ h1 {
   grid-template-columns: 1fr;
 }
 
-.concert-panel {
+.concert-panel,
+.cart-panel {
   margin-top: 18px;
 }
 
@@ -425,7 +426,10 @@ textarea:focus {
   width: 100%;
   aspect-ratio: 16 / 10;
   object-fit: cover;
-  background: #edf1f7;
+  border-bottom: 1px solid var(--line);
+  background:
+    linear-gradient(135deg, rgba(47, 111, 237, 0.16), rgba(22, 134, 92, 0.12)),
+    #edf1f7;
 }
 
 .concert-card-content {
@@ -445,10 +449,57 @@ textarea:focus {
   line-height: 1.45;
 }
 
+.concert-card .primary-button {
+  margin-top: 4px;
+}
+
 .concert-card a {
   color: var(--accent-dark);
   font-weight: 800;
   text-decoration: none;
+}
+
+.cart-list {
+  display: grid;
+  gap: 12px;
+}
+
+.cart-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 14px;
+}
+
+.cart-item div:first-child {
+  display: grid;
+  gap: 6px;
+}
+
+.cart-item span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.cart-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cart-actions button {
+  min-width: 34px;
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--accent-dark);
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .event-list {
@@ -637,7 +688,8 @@ dd {
   .stats-grid,
   .workspace,
   .event-list,
-  .concert-list {
+  .concert-list,
+  .cart-item {
     grid-template-columns: 1fr;
   }
 

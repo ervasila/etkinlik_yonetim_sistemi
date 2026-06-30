@@ -5,6 +5,26 @@ const ADMIN_USERS = [
   { id: "admin-1", name: "Admin", email: "admin@gmail.com", password: "1234", role: "admin" },
   { id: "admin-2", name: "Admin 1", email: "admin1@gmail.com", password: "1234", role: "admin" },
 ];
+const DEFAULT_CONCERT_IMAGES = [
+  {
+    keyword: "melike",
+    url: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    keyword: "manifest",
+    url: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    keyword: "mabel",
+    url: "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=1200&q=80",
+  },
+  {
+    keyword: "duman",
+    url: "https://images.unsplash.com/photo-1499364615650-ec38552f4f34?auto=format&fit=crop&w=1200&q=80",
+  },
+];
+const GENERIC_CONCERT_IMAGE =
+  "https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1200&q=80";
 const weatherCodeLabels = {
   0: "Acik",
   1: "Az bulutlu",
@@ -114,11 +134,16 @@ const fetchConcertsButton = document.querySelector("#fetchConcerts");
 const concertStatus = document.querySelector("#concertStatus");
 const concertList = document.querySelector("#concertList");
 const artistChips = document.querySelector(".artist-chips");
+const cartSummary = document.querySelector("#cartSummary");
+const cartEmpty = document.querySelector("#cartEmpty");
+const cartList = document.querySelector("#cartList");
 
 let events = JSON.parse(localStorage.getItem(STORAGE_KEY)) || sampleEvents;
 let users = JSON.parse(localStorage.getItem(USERS_KEY)) || [];
 let currentUser = JSON.parse(localStorage.getItem(SESSION_KEY)) || null;
 let selectedLoginRole = "admin";
+let latestConcerts = [];
+let cartItems = [];
 
 events = events.map((event, index) => ({
   ...event,
@@ -240,6 +265,112 @@ function formatConcertDate(dateValue, timeValue) {
   const time = timeValue ? ` - ${timeValue}` : "";
 
   return `${formatter.format(new Date(dateValue))}${time}`;
+}
+
+function formatPriceRange(priceRanges) {
+  const price = priceRanges?.[0];
+
+  if (!price || typeof price.min !== "number") {
+    return "Fiyat bilgisi Biletix/Ticketmaster tarafindan paylasilmadi.";
+  }
+
+  const currency = price.currency || "TRY";
+  const formatter = new Intl.NumberFormat("tr-TR", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  });
+
+  if (typeof price.max === "number" && price.max !== price.min) {
+    return `${formatter.format(price.min)} - ${formatter.format(price.max)}`;
+  }
+
+  return formatter.format(price.min);
+}
+
+function getConcertVenueText(venue) {
+  return `${venue?.name || "Mekan belirtilmemis"}${venue?.city?.name ? `, ${venue.city.name}` : ""}`;
+}
+
+async function getConcertWeather(concert) {
+  const venue = concert._embedded?.venues?.[0];
+  const latitude = venue?.location?.latitude;
+  const longitude = venue?.location?.longitude;
+  const date = concert.dates?.start?.localDate;
+
+  if (!latitude || !longitude || !date) {
+    return "Hava durumu icin konum veya tarih bilgisi eksik.";
+  }
+
+  const forecastUrl = new URL("https://api.open-meteo.com/v1/forecast");
+  forecastUrl.searchParams.set("latitude", latitude);
+  forecastUrl.searchParams.set("longitude", longitude);
+  forecastUrl.searchParams.set("daily", "temperature_2m_max,temperature_2m_min,weather_code");
+  forecastUrl.searchParams.set("timezone", "auto");
+  forecastUrl.searchParams.set("forecast_days", "16");
+
+  const response = await fetch(forecastUrl);
+
+  if (!response.ok) {
+    return "Hava durumu alinamadi.";
+  }
+
+  const data = await response.json();
+  const dayIndex = data.daily.time.indexOf(date);
+
+  if (dayIndex === -1) {
+    return "Etkinlik gunu hava tahmini henuz aciklanmadi.";
+  }
+
+  const min = Math.round(data.daily.temperature_2m_min[dayIndex]);
+  const max = Math.round(data.daily.temperature_2m_max[dayIndex]);
+  const label = weatherCodeLabels[data.daily.weather_code[dayIndex]] || "Hava durumu";
+
+  return `${label}, ${min}°C / ${max}°C`;
+}
+
+function renderCart() {
+  const totalTickets = cartItems.reduce((total, item) => total + item.quantity, 0);
+  cartSummary.textContent = `${totalTickets} bilet`;
+  cartEmpty.classList.toggle("hidden", cartItems.length > 0);
+  cartList.innerHTML = "";
+
+  cartItems.forEach((item) => {
+    const row = document.createElement("article");
+    const info = document.createElement("div");
+    const actions = document.createElement("div");
+    const title = document.createElement("strong");
+    const meta = document.createElement("span");
+    const price = document.createElement("span");
+    const decrease = document.createElement("button");
+    const quantity = document.createElement("span");
+    const increase = document.createElement("button");
+    const remove = document.createElement("button");
+
+    row.className = "cart-item";
+    actions.className = "cart-actions";
+    title.textContent = item.name;
+    meta.textContent = `${item.dateText} - ${item.venueText}`;
+    price.textContent = item.priceText;
+    decrease.textContent = "-";
+    decrease.type = "button";
+    decrease.dataset.cartAction = "decrease";
+    decrease.dataset.id = item.id;
+    quantity.textContent = item.quantity;
+    increase.textContent = "+";
+    increase.type = "button";
+    increase.dataset.cartAction = "increase";
+    increase.dataset.id = item.id;
+    remove.textContent = "Sil";
+    remove.type = "button";
+    remove.dataset.cartAction = "remove";
+    remove.dataset.id = item.id;
+
+    info.append(title, meta, price);
+    actions.append(decrease, quantity, increase, remove);
+    row.append(info, actions);
+    cartList.appendChild(row);
+  });
 }
 
 function getFilteredEvents() {
@@ -393,6 +524,7 @@ async function getWeatherForEvent(eventItem) {
 }
 
 function renderConcerts(concerts) {
+  latestConcerts = concerts;
   concertList.innerHTML = "";
 
   if (!concerts.length) {
@@ -406,35 +538,58 @@ function renderConcerts(concerts) {
     const venue = concert._embedded?.venues?.[0];
     const date = concert.dates?.start?.localDate;
     const time = concert.dates?.start?.localTime;
-    const image = concert.images?.find((item) => item.ratio === "16_9") || concert.images?.[0];
+    const apiImage =
+      concert.images
+        ?.filter((item) => item.ratio === "16_9")
+        .sort((a, b) => b.width - a.width)
+        .find((item) => !item.fallback) ||
+      concert.images?.filter((item) => item.ratio === "16_9").sort((a, b) => b.width - a.width)[0] ||
+      concert.images?.[0];
+    const fallbackImage =
+      DEFAULT_CONCERT_IMAGES.find((item) =>
+        concert.name.toLocaleLowerCase("tr-TR").includes(item.keyword),
+      )?.url || GENERIC_CONCERT_IMAGE;
     const card = document.createElement("article");
     const content = document.createElement("div");
     const poster = document.createElement("img");
     const title = document.createElement("h3");
     const dateText = document.createElement("p");
     const venueText = document.createElement("p");
-    const link = document.createElement("a");
+    const priceText = document.createElement("p");
+    const weatherText = document.createElement("p");
+    const sourceText = document.createElement("p");
+    const addButton = document.createElement("button");
 
     card.className = "concert-card";
     content.className = "concert-card-content";
 
-    if (image?.url) {
-      poster.src = image.url;
-      poster.alt = `${concert.name} konser gorseli`;
-      card.appendChild(poster);
-    }
+    poster.src = apiImage?.url || fallbackImage;
+    poster.alt = `${concert.name} konser gorseli`;
+    poster.loading = "lazy";
+    poster.addEventListener("error", () => {
+      poster.src = fallbackImage;
+    });
+    card.appendChild(poster);
 
     title.textContent = concert.name;
     dateText.textContent = formatConcertDate(date, time);
-    venueText.textContent = `${venue?.name || "Mekan belirtilmemis"}${
-      venue?.city?.name ? `, ${venue.city.name}` : ""
-    }`;
-    link.href = concert.url;
-    link.target = "_blank";
-    link.rel = "noreferrer";
-    link.textContent = "Bilet Al";
+    venueText.textContent = getConcertVenueText(venue);
+    priceText.textContent = `Fiyat: ${formatPriceRange(concert.priceRanges)}`;
+    weatherText.textContent = "Etkinlik gunu hava durumu aliniyor...";
+    sourceText.textContent = concert.url?.includes("biletix.com")
+      ? "Kaynak: Biletix"
+      : "Kaynak: Ticketmaster";
+    addButton.className = "primary-button";
+    addButton.type = "button";
+    addButton.dataset.action = "add-ticket";
+    addButton.dataset.id = concert.id;
+    addButton.textContent = "Sepete Ekle";
 
-    content.append(title, dateText, venueText, link);
+    getConcertWeather(concert).then((weather) => {
+      weatherText.textContent = `Hava durumu: ${weather}`;
+    });
+
+    content.append(title, dateText, venueText, priceText, weatherText, sourceText, addButton);
     card.appendChild(content);
 
     concertList.appendChild(card);
@@ -575,6 +730,72 @@ artistChips.addEventListener("click", (event) => {
 
   concertKeywordInput.value = chip.dataset.artist;
   fetchConcerts();
+});
+
+concertList.addEventListener("click", (event) => {
+  const button = event.target.closest('[data-action="add-ticket"]');
+
+  if (!button) {
+    return;
+  }
+
+  const concert = latestConcerts.find((item) => item.id === button.dataset.id);
+
+  if (!concert) {
+    return;
+  }
+
+  const existingItem = cartItems.find((item) => item.id === concert.id);
+
+  if (existingItem) {
+    existingItem.quantity += 1;
+  } else {
+    const venue = concert._embedded?.venues?.[0];
+
+    cartItems.push({
+      id: concert.id,
+      name: concert.name,
+      dateText: formatConcertDate(concert.dates?.start?.localDate, concert.dates?.start?.localTime),
+      venueText: getConcertVenueText(venue),
+      priceText: formatPriceRange(concert.priceRanges),
+      sourceUrl: concert.url,
+      quantity: 1,
+    });
+  }
+
+  button.textContent = "Sepete Eklendi";
+  setTimeout(() => {
+    button.textContent = "Sepete Ekle";
+  }, 1200);
+  renderCart();
+});
+
+cartList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-cart-action]");
+
+  if (!button) {
+    return;
+  }
+
+  const item = cartItems.find((cartItem) => cartItem.id === button.dataset.id);
+
+  if (!item) {
+    return;
+  }
+
+  if (button.dataset.cartAction === "increase") {
+    item.quantity += 1;
+  }
+
+  if (button.dataset.cartAction === "decrease") {
+    item.quantity -= 1;
+  }
+
+  if (button.dataset.cartAction === "remove" || item.quantity <= 0) {
+    cartItems = cartItems.filter((cartItem) => cartItem.id !== item.id);
+  }
+
+  renderCart();
 });
 
 form.addEventListener("submit", (event) => {
