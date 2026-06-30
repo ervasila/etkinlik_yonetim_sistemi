@@ -6,6 +6,10 @@ tarayici tabanli bir yonetim paneli.
 ## Ozellikler
 
 - Yeni etkinlik ekleme
+- Kayit ve giris ekrani
+- Ayrı admin ve kullanici girisi
+- Admin icin etkinlik ekleme/silme yetkisi
+- Kullanici icin etkinlikleri goruntuleme ve katilimci ekleme
 - Etkinlik arama
 - Kategori ve durum filtreleme
 - Kontenjan ve katilimci takibi

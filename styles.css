@@ -25,6 +25,10 @@ body {
   font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+.hidden {
+  display: none !important;
+}
+
 button,
 input,
 select,
@@ -38,10 +42,95 @@ textarea {
   padding: 34px 0;
 }
 
+.auth-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 28px 16px;
+  background:
+    linear-gradient(120deg, rgba(16, 24, 40, 0.8), rgba(47, 111, 237, 0.72)),
+    url("https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1600&q=80");
+  background-position: center;
+  background-size: cover;
+}
+
+.auth-card {
+  width: min(480px, 100%);
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: var(--shadow);
+  padding: 28px;
+}
+
+.auth-brand h1 {
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: clamp(2rem, 6vw, 3.2rem);
+  line-height: 1;
+}
+
+.auth-brand .eyebrow {
+  color: var(--accent-dark);
+}
+
+.auth-brand p:not(.eyebrow) {
+  margin-bottom: 22px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.auth-form {
+  display: grid;
+  gap: 14px;
+}
+
+.auth-form label {
+  margin-bottom: 0;
+}
+
+.role-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.role-tabs button,
+.text-button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--muted);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.role-tabs button.active {
+  border-color: var(--accent);
+  background: rgba(47, 111, 237, 0.1);
+  color: var(--accent-dark);
+}
+
+.text-button {
+  border: 0;
+  background: transparent;
+  color: var(--accent-dark);
+}
+
+.auth-message {
+  min-height: 22px;
+  margin: 16px 0 0;
+  color: var(--danger);
+  font-weight: 700;
+}
+
 .hero {
   min-height: 280px;
   display: flex;
   align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
   padding: 34px;
   border-radius: 8px;
   background:
@@ -51,6 +140,33 @@ textarea {
   background-size: cover;
   color: #ffffff;
   box-shadow: var(--shadow);
+}
+
+.session-card {
+  min-width: 190px;
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.36);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  padding: 16px;
+}
+
+.session-card span {
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.session-card strong {
+  font-size: 1.05rem;
+}
+
+.session-card .secondary-button {
+  border-color: rgba(255, 255, 255, 0.58);
+  color: #ffffff;
 }
 
 .hero-content {
@@ -124,6 +240,10 @@ h1 {
   grid-template-columns: 380px minmax(0, 1fr);
   gap: 18px;
   align-items: start;
+}
+
+.app-shell.user-mode .workspace {
+  grid-template-columns: 1fr;
 }
 
 .concert-panel {
@@ -522,6 +642,7 @@ dd {
 
   .hero {
     min-height: 310px;
+    display: grid;
     padding: 24px;
   }
 

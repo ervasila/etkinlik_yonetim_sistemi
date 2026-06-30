@@ -1,4 +1,6 @@
 const STORAGE_KEY = "event-management-system-events";
+const USERS_KEY = "event-management-system-users";
+const SESSION_KEY = "event-management-system-session";
 const weatherCodeLabels = {
   0: "Acik",
   1: "Az bulutlu",
@@ -61,6 +63,25 @@ const sampleEvents = [
 ];
 
 const form = document.querySelector("#eventForm");
+const authShell = document.querySelector("#authShell");
+const appShell = document.querySelector("#appShell");
+const registerForm = document.querySelector("#registerForm");
+const loginForm = document.querySelector("#loginForm");
+const authTitle = document.querySelector("#authTitle");
+const authSubtitle = document.querySelector("#authSubtitle");
+const authMessage = document.querySelector("#authMessage");
+const showLoginButton = document.querySelector("#showLogin");
+const showRegisterButton = document.querySelector("#showRegister");
+const registerNameInput = document.querySelector("#registerName");
+const registerEmailInput = document.querySelector("#registerEmail");
+const registerPasswordInput = document.querySelector("#registerPassword");
+const registerRoleInput = document.querySelector("#registerRole");
+const loginEmailInput = document.querySelector("#loginEmail");
+const loginPasswordInput = document.querySelector("#loginPassword");
+const roleTabs = document.querySelector(".role-tabs");
+const sessionRole = document.querySelector("#sessionRole");
+const sessionName = document.querySelector("#sessionName");
+const logoutButton = document.querySelector("#logoutButton");
 const eventList = document.querySelector("#eventList");
 const eventTemplate = document.querySelector("#eventTemplate");
 const emptyState = document.querySelector("#emptyState");
@@ -88,12 +109,92 @@ const concertList = document.querySelector("#concertList");
 const artistChips = document.querySelector(".artist-chips");
 
 let events = JSON.parse(localStorage.getItem(STORAGE_KEY)) || sampleEvents;
+let users = JSON.parse(localStorage.getItem(USERS_KEY)) || [];
+let currentUser = JSON.parse(localStorage.getItem(SESSION_KEY)) || null;
+let selectedLoginRole = "admin";
 
 dateInput.value = new Date().toISOString().split("T")[0];
 timeInput.value = "12:00";
 
 function saveEvents() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+}
+
+function saveUsers() {
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
+
+function isAdmin() {
+  return currentUser?.role === "admin";
+}
+
+function setAuthMessage(message, isSuccess = false) {
+  authMessage.textContent = message;
+  authMessage.style.color = isSuccess ? "var(--success)" : "var(--danger)";
+}
+
+function showRegisterView() {
+  authTitle.textContent = "Kayit Ol";
+  authSubtitle.textContent = "Devam etmek icin once hesap olustur.";
+  registerForm.classList.remove("hidden");
+  loginForm.classList.add("hidden");
+  setAuthMessage("");
+}
+
+function showLoginView() {
+  authTitle.textContent = "Giris Yap";
+  authSubtitle.textContent = "Admin ve kullanici girisleri ayridir.";
+  registerForm.classList.add("hidden");
+  loginForm.classList.remove("hidden");
+  setAuthMessage("");
+}
+
+function setLoginRole(role) {
+  selectedLoginRole = role;
+  roleTabs.querySelectorAll("button").forEach((button) => {
+    button.classList.toggle("active", button.dataset.loginRole === role);
+  });
+}
+
+function updateAdminVisibility() {
+  document.querySelectorAll(".admin-only").forEach((element) => {
+    element.classList.toggle("hidden", !isAdmin());
+  });
+}
+
+function showApp() {
+  authShell.classList.add("hidden");
+  appShell.classList.remove("hidden");
+  appShell.classList.toggle("user-mode", !isAdmin());
+  appShell.classList.toggle("admin-mode", isAdmin());
+  sessionName.textContent = currentUser.name;
+  sessionRole.textContent = isAdmin() ? "Admin" : "Kullanici";
+  updateAdminVisibility();
+  renderApp();
+}
+
+function showAuth() {
+  appShell.classList.add("hidden");
+  authShell.classList.remove("hidden");
+
+  if (users.length) {
+    showLoginView();
+    loginEmailInput.focus();
+  } else {
+    showRegisterView();
+    registerNameInput.focus();
+  }
+}
+
+function bootAuth() {
+  if (currentUser && users.some((user) => user.email === currentUser.email)) {
+    showApp();
+    return;
+  }
+
+  currentUser = null;
+  localStorage.removeItem(SESSION_KEY);
+  showAuth();
 }
 
 function formatDate(date, time) {
@@ -200,6 +301,10 @@ function renderEvents() {
         registerButton.disabled = true;
         registerButton.textContent = event.status === "Tamamlandi" ? "Tamamlandi" : "Kontenjan Dolu";
       }
+
+      card.querySelectorAll(".admin-only").forEach((element) => {
+        element.classList.toggle("hidden", !isAdmin());
+      });
 
       eventList.appendChild(card);
     });
@@ -357,6 +462,68 @@ async function fetchConcerts() {
 
 fetchConcertsButton.addEventListener("click", fetchConcerts);
 
+showLoginButton.addEventListener("click", showLoginView);
+
+showRegisterButton.addEventListener("click", showRegisterView);
+
+roleTabs.addEventListener("click", (event) => {
+  const tab = event.target.closest("[data-login-role]");
+
+  if (!tab) {
+    return;
+  }
+
+  setLoginRole(tab.dataset.loginRole);
+});
+
+registerForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const name = registerNameInput.value.trim();
+  const email = registerEmailInput.value.trim().toLocaleLowerCase("tr-TR");
+  const password = registerPasswordInput.value;
+  const role = registerRoleInput.value;
+
+  if (users.some((user) => user.email === email)) {
+    setAuthMessage("Bu e-posta ile kayitli bir hesap var.");
+    return;
+  }
+
+  users.push({ id: crypto.randomUUID(), name, email, password, role });
+  saveUsers();
+  registerForm.reset();
+  loginEmailInput.value = email;
+  setLoginRole(role);
+  showLoginView();
+  setAuthMessage("Kayit tamamlandi. Simdi giris yapabilirsin.", true);
+});
+
+loginForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const email = loginEmailInput.value.trim().toLocaleLowerCase("tr-TR");
+  const password = loginPasswordInput.value;
+  const user = users.find(
+    (item) => item.email === email && item.password === password && item.role === selectedLoginRole,
+  );
+
+  if (!user) {
+    setAuthMessage("E-posta, sifre veya giris tipi hatali.");
+    return;
+  }
+
+  currentUser = { id: user.id, name: user.name, email: user.email, role: user.role };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+  loginForm.reset();
+  showApp();
+});
+
+logoutButton.addEventListener("click", () => {
+  currentUser = null;
+  localStorage.removeItem(SESSION_KEY);
+  showAuth();
+});
+
 concertCityInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     fetchConcerts();
@@ -382,6 +549,10 @@ artistChips.addEventListener("click", (event) => {
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
+
+  if (!isAdmin()) {
+    return;
+  }
 
   const capacity = Number(capacityInput.value);
 
@@ -448,7 +619,7 @@ eventList.addEventListener("click", (event) => {
     return;
   }
 
-  if (button.dataset.action === "delete") {
+  if (button.dataset.action === "delete" && isAdmin()) {
     events = events.filter((item) => item.id !== selectedEvent.id);
   }
 
@@ -461,4 +632,4 @@ eventList.addEventListener("click", (event) => {
 });
 
 saveEvents();
-renderApp();
+bootAuth();

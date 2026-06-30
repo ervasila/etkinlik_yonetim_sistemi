@@ -13,7 +13,60 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="app-shell">
+    <section class="auth-shell" id="authShell">
+      <div class="auth-card">
+        <div class="auth-brand">
+          <p class="eyebrow">Etkinlik Yonetim Sistemi</p>
+          <h1 id="authTitle">Kayit Ol</h1>
+          <p id="authSubtitle">Devam etmek icin once hesap olustur.</p>
+        </div>
+
+        <form class="auth-form" id="registerForm">
+          <label>
+            Ad Soyad
+            <input id="registerName" type="text" placeholder="Adini yaz" required />
+          </label>
+          <label>
+            E-posta
+            <input id="registerEmail" type="email" placeholder="ornek@mail.com" required />
+          </label>
+          <label>
+            Sifre
+            <input id="registerPassword" type="password" placeholder="En az 4 karakter" minlength="4" required />
+          </label>
+          <label>
+            Hesap Tipi
+            <select id="registerRole">
+              <option value="user">Kullanici</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+          <button class="primary-button" type="submit">Kaydol</button>
+          <button class="text-button" id="showLogin" type="button">Zaten hesabim var</button>
+        </form>
+
+        <form class="auth-form hidden" id="loginForm">
+          <div class="role-tabs" aria-label="Giris tipi">
+            <button class="active" type="button" data-login-role="admin">Admin Girisi</button>
+            <button type="button" data-login-role="user">Kullanici Girisi</button>
+          </div>
+          <label>
+            E-posta
+            <input id="loginEmail" type="email" placeholder="ornek@mail.com" required />
+          </label>
+          <label>
+            Sifre
+            <input id="loginPassword" type="password" placeholder="Sifren" required />
+          </label>
+          <button class="primary-button" type="submit">Giris Yap</button>
+          <button class="text-button" id="showRegister" type="button">Yeni hesap olustur</button>
+        </form>
+
+        <p class="auth-message" id="authMessage"></p>
+      </div>
+    </section>
+
+    <main class="app-shell hidden" id="appShell">
       <section class="hero">
         <div class="hero-content">
           <p class="eyebrow">Etkinlik Yonetim Sistemi</p>
@@ -22,6 +75,11 @@
             Konferans, atölye, meetup ve sosyal etkinlikler icin sade bir
             yonetim paneli.
           </p>
+        </div>
+        <div class="session-card">
+          <span id="sessionRole">Kullanici</span>
+          <strong id="sessionName">Misafir</strong>
+          <button class="secondary-button" id="logoutButton" type="button">Cikis</button>
         </div>
       </section>
 
@@ -45,7 +103,7 @@
       </section>
 
       <section class="workspace">
-        <form class="panel event-form" id="eventForm">
+        <form class="panel event-form admin-only" id="eventForm">
           <div class="panel-heading">
             <h2>Yeni Etkinlik</h2>
             <p>Etkinlik bilgilerini ekle ve listeyi guncelle.</p>
@@ -206,7 +264,7 @@
         <div class="card-actions">
           <button class="secondary-button" data-action="register" type="button">Katilimci Ekle</button>
           <button class="secondary-button" data-action="weather" type="button">Hava Durumu</button>
-          <button class="danger-button" data-action="delete" type="button">Sil</button>
+          <button class="danger-button admin-only" data-action="delete" type="button">Sil</button>
         </div>
       </article>
     </template>
