@@ -39,6 +39,7 @@ const sampleEvents = [
     location: "Istanbul Teknoloji Merkezi",
     capacity: 60,
     attendees: 34,
+    imageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: "sample-2",
@@ -51,6 +52,7 @@ const sampleEvents = [
     location: "Kadikoy",
     capacity: 90,
     attendees: 18,
+    imageUrl: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: "sample-3",
@@ -63,6 +65,7 @@ const sampleEvents = [
     location: "Online",
     capacity: 250,
     attendees: 146,
+    imageUrl: "https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1200&q=80",
   },
 ];
 
@@ -104,6 +107,7 @@ const dateInput = document.querySelector("#date");
 const timeInput = document.querySelector("#time");
 const locationInput = document.querySelector("#location");
 const capacityInput = document.querySelector("#capacity");
+const imageUrlInput = document.querySelector("#imageUrl");
 const concertKeywordInput = document.querySelector("#concertKeyword");
 const concertCityInput = document.querySelector("#concertCity");
 const fetchConcertsButton = document.querySelector("#fetchConcerts");
@@ -115,6 +119,12 @@ let events = JSON.parse(localStorage.getItem(STORAGE_KEY)) || sampleEvents;
 let users = JSON.parse(localStorage.getItem(USERS_KEY)) || [];
 let currentUser = JSON.parse(localStorage.getItem(SESSION_KEY)) || null;
 let selectedLoginRole = "admin";
+
+events = events.map((event, index) => ({
+  ...event,
+  imageUrl: event.imageUrl || sampleEvents[index % sampleEvents.length].imageUrl,
+}));
+saveEvents();
 
 users = users
   .filter((user) => !ADMIN_USERS.some((admin) => admin.email === user.email))
@@ -287,6 +297,11 @@ function renderEvents() {
       const registerButton = card.querySelector('[data-action="register"]');
 
       card.dataset.id = event.id;
+      const image = card.querySelector('[data-field="image"]');
+      image.src =
+        event.imageUrl ||
+        "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1200&q=80";
+      image.alt = `${event.title} etkinlik gorseli`;
       card.querySelector(".badge").textContent = event.category;
       const statusBadge = card.querySelector(".status");
       const statusClass = getStatusClass(event.status);
@@ -582,6 +597,7 @@ form.addEventListener("submit", (event) => {
     location: locationInput.value.trim(),
     capacity,
     attendees: 0,
+    imageUrl: imageUrlInput.value.trim(),
   });
 
   saveEvents();

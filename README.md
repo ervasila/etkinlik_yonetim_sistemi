@@ -11,6 +11,7 @@ tarayici tabanli bir yonetim paneli.
 - Admin icin etkinlik ekleme/silme yetkisi
 - Kullanici icin etkinlikleri goruntuleme ve katilimci ekleme
 - Sabit admin hesaplari: `admin@gmail.com` ve `admin1@gmail.com` / sifre `1234`
+- Etkinlik kartlarinda gorsel kullanimi
 - Etkinlik arama
 - Kategori ve durum filtreleme
 - Kontenjan ve katilimci takibi

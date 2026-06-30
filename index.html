@@ -155,6 +155,11 @@
             </label>
           </div>
 
+          <label>
+            Gorsel URL
+            <input id="imageUrl" type="url" placeholder="https://..." />
+          </label>
+
           <button class="primary-button" type="submit">Etkinlik Ekle</button>
         </form>
 
@@ -229,6 +234,7 @@
 
     <template id="eventTemplate">
       <article class="event-card">
+        <img class="event-image" data-field="image" alt="" />
         <div class="event-topline">
           <span class="badge"></span>
           <span class="status"></span>
