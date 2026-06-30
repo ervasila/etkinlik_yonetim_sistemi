@@ -427,6 +427,7 @@ textarea:focus {
   aspect-ratio: 16 / 10;
   object-fit: cover;
   border-bottom: 1px solid var(--line);
+  transition: opacity 0.2s ease;
   background:
     linear-gradient(135deg, rgba(47, 111, 237, 0.16), rgba(22, 134, 92, 0.12)),
     #edf1f7;
@@ -457,6 +458,18 @@ textarea:focus {
   color: var(--accent-dark);
   font-weight: 800;
   text-decoration: none;
+}
+
+.cart-summary {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+
+.cart-summary span {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
 }
 
 .cart-list {

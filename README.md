@@ -25,6 +25,7 @@ tarayici tabanli bir yonetim paneli.
 - Konser kartlarinda fiyat bilgisi alani
 - Konser tarihi icin hava durumu alani
 - Biletix'e yonlendirmeden uygulama ici sepet arayuzu
+- Sepette toplam fiyat hesaplama
 - Kullaniciya API key gostermeden backend proxy ile konser arama
 - Manifest, Melike Sahin ve benzeri sanatcilar icin hizli arama butonlari
 - LocalStorage ile veri saklama

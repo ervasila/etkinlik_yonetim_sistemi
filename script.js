@@ -8,18 +8,22 @@ const ADMIN_USERS = [
 const DEFAULT_CONCERT_IMAGES = [
   {
     keyword: "melike",
+    wikiTitle: "Melike_Şahin",
     url: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=1200&q=80",
   },
   {
     keyword: "manifest",
+    wikiTitle: "",
     url: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&q=80",
   },
   {
     keyword: "mabel",
+    wikiTitle: "Mabel_Matiz",
     url: "https://images.unsplash.com/photo-1506157786151-b8491531f063?auto=format&fit=crop&w=1200&q=80",
   },
   {
     keyword: "duman",
+    wikiTitle: "Duman_(müzik_grubu)",
     url: "https://images.unsplash.com/photo-1499364615650-ec38552f4f34?auto=format&fit=crop&w=1200&q=80",
   },
 ];
@@ -135,6 +139,7 @@ const concertStatus = document.querySelector("#concertStatus");
 const concertList = document.querySelector("#concertList");
 const artistChips = document.querySelector(".artist-chips");
 const cartSummary = document.querySelector("#cartSummary");
+const cartTotal = document.querySelector("#cartTotal");
 const cartEmpty = document.querySelector("#cartEmpty");
 const cartList = document.querySelector("#cartList");
 
@@ -288,6 +293,19 @@ function formatPriceRange(priceRanges) {
   return formatter.format(price.min);
 }
 
+function getTicketPrice(priceRanges) {
+  const price = priceRanges?.[0];
+
+  if (!price || typeof price.min !== "number") {
+    return null;
+  }
+
+  return {
+    amount: price.min,
+    currency: price.currency || "TRY",
+  };
+}
+
 function getConcertVenueText(venue) {
   return `${venue?.name || "Mekan belirtilmemis"}${venue?.city?.name ? `, ${venue.city.name}` : ""}`;
 }
@@ -331,7 +349,22 @@ async function getConcertWeather(concert) {
 
 function renderCart() {
   const totalTickets = cartItems.reduce((total, item) => total + item.quantity, 0);
+  const pricedItems = cartItems.filter((item) => item.unitPrice !== null);
+  const unknownPriceTickets = cartItems
+    .filter((item) => item.unitPrice === null)
+    .reduce((total, item) => total + item.quantity, 0);
+  const currency = pricedItems[0]?.currency || "TRY";
+  const totalAmount = pricedItems.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
+  const formattedTotal = new Intl.NumberFormat("tr-TR", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(totalAmount);
+
   cartSummary.textContent = `${totalTickets} bilet`;
+  cartTotal.textContent = unknownPriceTickets
+    ? `Toplam: ${formattedTotal} + ${unknownPriceTickets} bilet icin fiyat yok`
+    : `Toplam: ${formattedTotal}`;
   cartEmpty.classList.toggle("hidden", cartItems.length > 0);
   cartList.innerHTML = "";
 
@@ -411,6 +444,40 @@ function getStatusClass(status) {
   }
 
   return "";
+}
+
+function getBestImage(images = [], includeFallback = false) {
+  return (
+    images
+      .filter((item) => item.ratio === "16_9" && (includeFallback || !item.fallback))
+      .sort((a, b) => b.width - a.width)[0] ||
+    images.filter((item) => includeFallback || !item.fallback).sort((a, b) => b.width - a.width)[0]
+  );
+}
+
+function getArtistFallback(concertName) {
+  return DEFAULT_CONCERT_IMAGES.find((item) =>
+    concertName.toLocaleLowerCase("tr-TR").includes(item.keyword),
+  );
+}
+
+async function getWikipediaArtistImage(wikiTitle) {
+  if (!wikiTitle) {
+    return "";
+  }
+
+  try {
+    const response = await fetch(`https://tr.wikipedia.org/api/rest_v1/page/summary/${wikiTitle}`);
+
+    if (!response.ok) {
+      return "";
+    }
+
+    const data = await response.json();
+    return data.originalimage?.source || data.thumbnail?.source || "";
+  } catch (error) {
+    return "";
+  }
 }
 
 function renderEvents() {
@@ -538,17 +605,11 @@ function renderConcerts(concerts) {
     const venue = concert._embedded?.venues?.[0];
     const date = concert.dates?.start?.localDate;
     const time = concert.dates?.start?.localTime;
-    const apiImage =
-      concert.images
-        ?.filter((item) => item.ratio === "16_9")
-        .sort((a, b) => b.width - a.width)
-        .find((item) => !item.fallback) ||
-      concert.images?.filter((item) => item.ratio === "16_9").sort((a, b) => b.width - a.width)[0] ||
-      concert.images?.[0];
-    const fallbackImage =
-      DEFAULT_CONCERT_IMAGES.find((item) =>
-        concert.name.toLocaleLowerCase("tr-TR").includes(item.keyword),
-      )?.url || GENERIC_CONCERT_IMAGE;
+    const attraction = concert._embedded?.attractions?.[0];
+    const artistFallback = getArtistFallback(concert.name);
+    const attractionImage = getBestImage(attraction?.images, false);
+    const apiImage = getBestImage(concert.images, false) || getBestImage(concert.images, true);
+    const fallbackImage = artistFallback?.url || GENERIC_CONCERT_IMAGE;
     const card = document.createElement("article");
     const content = document.createElement("div");
     const poster = document.createElement("img");
@@ -563,13 +624,21 @@ function renderConcerts(concerts) {
     card.className = "concert-card";
     content.className = "concert-card-content";
 
-    poster.src = apiImage?.url || fallbackImage;
+    poster.src = attractionImage?.url || apiImage?.url || fallbackImage;
     poster.alt = `${concert.name} konser gorseli`;
     poster.loading = "lazy";
     poster.addEventListener("error", () => {
       poster.src = fallbackImage;
     });
     card.appendChild(poster);
+
+    if (!attractionImage?.url || attractionImage.fallback) {
+      getWikipediaArtistImage(artistFallback?.wikiTitle).then((artistImage) => {
+        if (artistImage) {
+          poster.src = artistImage;
+        }
+      });
+    }
 
     title.textContent = concert.name;
     dateText.textContent = formatConcertDate(date, time);
@@ -751,6 +820,7 @@ concertList.addEventListener("click", (event) => {
     existingItem.quantity += 1;
   } else {
     const venue = concert._embedded?.venues?.[0];
+    const ticketPrice = getTicketPrice(concert.priceRanges);
 
     cartItems.push({
       id: concert.id,
@@ -758,6 +828,8 @@ concertList.addEventListener("click", (event) => {
       dateText: formatConcertDate(concert.dates?.start?.localDate, concert.dates?.start?.localTime),
       venueText: getConcertVenueText(venue),
       priceText: formatPriceRange(concert.priceRanges),
+      unitPrice: ticketPrice?.amount ?? null,
+      currency: ticketPrice?.currency || "TRY",
       sourceUrl: concert.url,
       quantity: 1,
     });
