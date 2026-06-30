@@ -1,4 +1,25 @@
 const STORAGE_KEY = "event-management-system-events";
+const weatherCodeLabels = {
+  0: "Acik",
+  1: "Az bulutlu",
+  2: "Parcali bulutlu",
+  3: "Kapali",
+  45: "Sisli",
+  48: "Kiragi sisli",
+  51: "Hafif ciseleme",
+  53: "Ciseleme",
+  55: "Yogun ciseleme",
+  61: "Hafif yagmur",
+  63: "Yagmur",
+  65: "Kuvvetli yagmur",
+  71: "Hafif kar",
+  73: "Kar",
+  75: "Kuvvetli kar",
+  80: "Hafif saganak",
+  81: "Saganak",
+  82: "Kuvvetli saganak",
+  95: "Gok gurultulu",
+};
 
 const sampleEvents = [
   {
@@ -151,6 +172,8 @@ function renderEvents() {
       card.querySelector('[data-field="capacityText"]').textContent =
         `${event.attendees}/${event.capacity} katilimci - %${fullness} dolu`;
       card.querySelector('[data-field="capacityBar"]').style.width = `${fullness}%`;
+      card.querySelector('[data-field="weather"] span').textContent =
+        event.weather || "Hava durumu henuz alinmadi.";
 
       if (event.attendees >= event.capacity || event.status === "Tamamlandi") {
         registerButton.disabled = true;
@@ -164,6 +187,58 @@ function renderEvents() {
 function renderApp() {
   updateStats();
   renderEvents();
+}
+
+async function getWeatherForEvent(eventItem) {
+  if (eventItem.location.toLocaleLowerCase("tr-TR").includes("online")) {
+    throw new Error("Online etkinlikler icin lokasyon bazli hava durumu alinamaz.");
+  }
+
+  const geoUrl = new URL("https://geocoding-api.open-meteo.com/v1/search");
+  geoUrl.searchParams.set("name", eventItem.location);
+  geoUrl.searchParams.set("count", "1");
+  geoUrl.searchParams.set("language", "tr");
+  geoUrl.searchParams.set("format", "json");
+
+  const geoResponse = await fetch(geoUrl);
+
+  if (!geoResponse.ok) {
+    throw new Error("Lokasyon bilgisi alinamadi.");
+  }
+
+  const geoData = await geoResponse.json();
+  const location = geoData.results?.[0];
+
+  if (!location) {
+    throw new Error("Bu lokasyon icin sonuc bulunamadi.");
+  }
+
+  const forecastUrl = new URL("https://api.open-meteo.com/v1/forecast");
+  forecastUrl.searchParams.set("latitude", location.latitude);
+  forecastUrl.searchParams.set("longitude", location.longitude);
+  forecastUrl.searchParams.set("daily", "temperature_2m_max,temperature_2m_min,weather_code");
+  forecastUrl.searchParams.set("timezone", "auto");
+  forecastUrl.searchParams.set("forecast_days", "16");
+
+  const forecastResponse = await fetch(forecastUrl);
+
+  if (!forecastResponse.ok) {
+    throw new Error("Hava durumu bilgisi alinamadi.");
+  }
+
+  const forecastData = await forecastResponse.json();
+  const dayIndex = forecastData.daily.time.indexOf(eventItem.date);
+
+  if (dayIndex === -1) {
+    throw new Error("Hava durumu yalnizca yakin tarihli etkinlikler icin alinabilir.");
+  }
+
+  const min = Math.round(forecastData.daily.temperature_2m_min[dayIndex]);
+  const max = Math.round(forecastData.daily.temperature_2m_max[dayIndex]);
+  const weatherCode = forecastData.daily.weather_code[dayIndex];
+  const label = weatherCodeLabels[weatherCode] || "Hava durumu";
+
+  return `${location.name}: ${label}, ${min}°C / ${max}°C`;
 }
 
 form.addEventListener("submit", (event) => {
@@ -208,6 +283,30 @@ eventList.addEventListener("click", (event) => {
 
   if (button.dataset.action === "register" && selectedEvent.attendees < selectedEvent.capacity) {
     selectedEvent.attendees += 1;
+  }
+
+  if (button.dataset.action === "weather") {
+    const weatherBox = card.querySelector('[data-field="weather"]');
+
+    button.disabled = true;
+    weatherBox.classList.remove("error");
+    weatherBox.innerHTML = "<span>Hava durumu aliniyor...</span>";
+
+    getWeatherForEvent(selectedEvent)
+      .then((weather) => {
+        selectedEvent.weather = weather;
+        saveEvents();
+        weatherBox.innerHTML = `<span><strong>${weather}</strong></span>`;
+      })
+      .catch((error) => {
+        weatherBox.classList.add("error");
+        weatherBox.innerHTML = `<span>${error.message}</span>`;
+      })
+      .finally(() => {
+        button.disabled = false;
+      });
+
+    return;
   }
 
   if (button.dataset.action === "delete") {
