@@ -2,6 +2,39 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 
+function loadEnvFile() {
+  const envPath = path.join(__dirname, ".env");
+
+  if (!fs.existsSync(envPath)) {
+    return;
+  }
+
+  const lines = fs.readFileSync(envPath, "utf8").split(/\r?\n/);
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+
+    if (!trimmed || trimmed.startsWith("#")) {
+      return;
+    }
+
+    const separatorIndex = trimmed.indexOf("=");
+
+    if (separatorIndex === -1) {
+      return;
+    }
+
+    const key = trimmed.slice(0, separatorIndex).trim();
+    const value = trimmed.slice(separatorIndex + 1).trim().replace(/^["']|["']$/g, "");
+
+    if (key && !process.env[key]) {
+      process.env[key] = value;
+    }
+  });
+}
+
+loadEnvFile();
+
 const PORT = Number(process.env.PORT || 5174);
 const TICKETMASTER_API_KEY = process.env.TICKETMASTER_API_KEY || "";
 
@@ -24,7 +57,7 @@ function sendJson(response, statusCode, body) {
 async function handleConcerts(request, response) {
   if (!TICKETMASTER_API_KEY) {
     sendJson(response, 500, {
-      message: "Sunucuda TICKETMASTER_API_KEY tanimli degil.",
+      message: "Konserleri gostermek icin Ticketmaster API key ayarlanmali.",
     });
     return;
   }

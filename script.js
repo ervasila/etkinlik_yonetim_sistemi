@@ -464,7 +464,10 @@ async function fetchConcerts() {
     renderConcerts(concerts);
   } catch (error) {
     concertStatus.classList.add("error");
-    concertStatus.textContent = error.message;
+    concertStatus.textContent =
+      error.message === "Konserleri gostermek icin Ticketmaster API key ayarlanmali."
+        ? "Konserleri gostermek icin uygulama sahibinin Ticketmaster API key ayarlamasi gerekiyor."
+        : error.message;
   } finally {
     fetchConcertsButton.disabled = false;
   }

@@ -50,6 +50,25 @@ Ticketmaster API key'i ortam degiskeni olarak vererek calistir:
 TICKETMASTER_API_KEY=api_key_buraya node server.js
 ```
 
+Ya da `.env` dosyasi olustur:
+
+```bash
+cp .env.example .env
+```
+
+`.env` icine kendi key'ini yaz:
+
+```text
+TICKETMASTER_API_KEY=api_key_buraya
+PORT=5174
+```
+
+Sonra normal calistir:
+
+```bash
+node server.js
+```
+
 Sonra tarayicida `http://localhost:5174` adresini ac.
 
 API key sadece sunucuda tutulur. Kullanici uygulamada API key girmez.
