@@ -1,5 +1,4 @@
 const STORAGE_KEY = "event-management-system-events";
-const TICKETMASTER_KEY = "event-management-ticketmaster-key";
 const weatherCodeLabels = {
   0: "Acik",
   1: "Az bulutlu",
@@ -81,7 +80,6 @@ const dateInput = document.querySelector("#date");
 const timeInput = document.querySelector("#time");
 const locationInput = document.querySelector("#location");
 const capacityInput = document.querySelector("#capacity");
-const ticketmasterKeyInput = document.querySelector("#ticketmasterKey");
 const concertKeywordInput = document.querySelector("#concertKeyword");
 const concertCityInput = document.querySelector("#concertCity");
 const fetchConcertsButton = document.querySelector("#fetchConcerts");
@@ -93,7 +91,6 @@ let events = JSON.parse(localStorage.getItem(STORAGE_KEY)) || sampleEvents;
 
 dateInput.value = new Date().toISOString().split("T")[0];
 timeInput.value = "12:00";
-ticketmasterKeyInput.value = localStorage.getItem(TICKETMASTER_KEY) || "";
 
 function saveEvents() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
@@ -305,7 +302,7 @@ function renderConcerts(concerts) {
     link.href = concert.url;
     link.target = "_blank";
     link.rel = "noreferrer";
-    link.textContent = "Detaylari Ac";
+    link.textContent = "Bilet Al";
 
     content.append(title, dateText, venueText, link);
     card.appendChild(content);
@@ -315,19 +312,11 @@ function renderConcerts(concerts) {
 }
 
 async function fetchConcerts() {
-  const apiKey = ticketmasterKeyInput.value.trim();
   const keyword = concertKeywordInput.value.trim();
   const city = concertCityInput.value.trim();
 
   concertStatus.classList.remove("error");
   concertList.innerHTML = "";
-
-  if (!apiKey) {
-    concertStatus.classList.add("error");
-    concertStatus.textContent = "Ticketmaster API key gerekli.";
-    ticketmasterKeyInput.focus();
-    return;
-  }
 
   if (!city) {
     concertStatus.classList.add("error");
@@ -336,18 +325,12 @@ async function fetchConcerts() {
     return;
   }
 
-  localStorage.setItem(TICKETMASTER_KEY, apiKey);
   fetchConcertsButton.disabled = true;
   concertStatus.textContent = "Konserler aliniyor...";
 
   try {
-    const url = new URL("https://app.ticketmaster.com/discovery/v2/events.json");
-    url.searchParams.set("apikey", apiKey);
+    const url = new URL("/api/concerts", window.location.origin);
     url.searchParams.set("city", city);
-    url.searchParams.set("classificationName", "music");
-    url.searchParams.set("sort", "date,asc");
-    url.searchParams.set("size", "6");
-    url.searchParams.set("locale", "*");
 
     if (keyword) {
       url.searchParams.set("keyword", keyword);
@@ -356,7 +339,8 @@ async function fetchConcerts() {
     const response = await fetch(url);
 
     if (!response.ok) {
-      throw new Error("Konser API istegi basarisiz oldu. API key veya sehir bilgisini kontrol et.");
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Konser API istegi basarisiz oldu.");
     }
 
     const data = await response.json();

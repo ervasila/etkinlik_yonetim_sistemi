@@ -15,6 +15,7 @@ tarayici tabanli bir yonetim paneli.
 - Open-Meteo API ile lokasyona gore hava durumu cekme
 - Ticketmaster API ile sehre gore konser listeleme
 - Konser kartlarinda API'den gelen etkinlik fotograflari
+- Kullaniciya API key gostermeden backend proxy ile konser arama
 - Manifest, Melike Sahin ve benzeri sanatcilar icin hizli arama butonlari
 - LocalStorage ile veri saklama
 - Mobil uyumlu arayuz
@@ -24,26 +25,30 @@ tarayici tabanli bir yonetim paneli.
 - HTML
 - CSS
 - JavaScript
+- Node.js
 - Open-Meteo Geocoding API
 - Open-Meteo Forecast API
 - Ticketmaster Discovery API
 
 ## Calistirma
 
-Projeyi indirdikten sonra `index.html` dosyasini tarayicida acman yeterli.
+Projeyi indirdikten sonra klasore gir:
 
 ```bash
 git clone https://github.com/ervasila/etkinlik_yonetim_sistemi.git
 cd etkinlik_yonetim_sistemi
 ```
 
-Alternatif olarak yerel sunucu ile calistirabilirsin:
+Ticketmaster API key'i ortam degiskeni olarak vererek calistir:
 
 ```bash
-python3 -m http.server 5174
+TICKETMASTER_API_KEY=api_key_buraya node server.js
 ```
 
 Sonra tarayicida `http://localhost:5174` adresini ac.
+
+API key sadece sunucuda tutulur. Kullanici uygulamada API key girmez.
+Ornek ortam dosyasi icin `.env.example` dosyasina bakabilirsin.
 
 ## Klasor Yapisi
 
@@ -52,6 +57,8 @@ etkinlik_yonetim_sistemi/
 ├── index.html
 ├── styles.css
 ├── script.js
+├── server.js
+├── .env.example
 └── README.md
 ```
 
