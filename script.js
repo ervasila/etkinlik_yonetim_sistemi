@@ -1,6 +1,10 @@
 const STORAGE_KEY = "event-management-system-events";
 const USERS_KEY = "event-management-system-users";
 const SESSION_KEY = "event-management-system-session";
+const ADMIN_USERS = [
+  { id: "admin-1", name: "Admin", email: "admin@gmail.com", password: "1234", role: "admin" },
+  { id: "admin-2", name: "Admin 1", email: "admin1@gmail.com", password: "1234", role: "admin" },
+];
 const weatherCodeLabels = {
   0: "Acik",
   1: "Az bulutlu",
@@ -75,7 +79,6 @@ const showRegisterButton = document.querySelector("#showRegister");
 const registerNameInput = document.querySelector("#registerName");
 const registerEmailInput = document.querySelector("#registerEmail");
 const registerPasswordInput = document.querySelector("#registerPassword");
-const registerRoleInput = document.querySelector("#registerRole");
 const loginEmailInput = document.querySelector("#loginEmail");
 const loginPasswordInput = document.querySelector("#loginPassword");
 const roleTabs = document.querySelector(".role-tabs");
@@ -113,6 +116,11 @@ let users = JSON.parse(localStorage.getItem(USERS_KEY)) || [];
 let currentUser = JSON.parse(localStorage.getItem(SESSION_KEY)) || null;
 let selectedLoginRole = "admin";
 
+users = users
+  .filter((user) => !ADMIN_USERS.some((admin) => admin.email === user.email))
+  .map((user) => ({ ...user, role: "user" }));
+saveUsers();
+
 dateInput.value = new Date().toISOString().split("T")[0];
 timeInput.value = "12:00";
 
@@ -135,7 +143,7 @@ function setAuthMessage(message, isSuccess = false) {
 
 function showRegisterView() {
   authTitle.textContent = "Kayit Ol";
-  authSubtitle.textContent = "Devam etmek icin once hesap olustur.";
+  authSubtitle.textContent = "Kullanici hesabi olustur. Admin hesaplari sabittir.";
   registerForm.classList.remove("hidden");
   loginForm.classList.add("hidden");
   setAuthMessage("");
@@ -187,7 +195,9 @@ function showAuth() {
 }
 
 function bootAuth() {
-  if (currentUser && users.some((user) => user.email === currentUser.email)) {
+  const knownUsers = [...ADMIN_USERS, ...users];
+
+  if (currentUser && knownUsers.some((user) => user.email === currentUser.email)) {
     showApp();
     return;
   }
@@ -482,9 +492,10 @@ registerForm.addEventListener("submit", (event) => {
   const name = registerNameInput.value.trim();
   const email = registerEmailInput.value.trim().toLocaleLowerCase("tr-TR");
   const password = registerPasswordInput.value;
-  const role = registerRoleInput.value;
+  const role = "user";
+  const knownUsers = [...ADMIN_USERS, ...users];
 
-  if (users.some((user) => user.email === email)) {
+  if (knownUsers.some((user) => user.email === email)) {
     setAuthMessage("Bu e-posta ile kayitli bir hesap var.");
     return;
   }
@@ -493,7 +504,7 @@ registerForm.addEventListener("submit", (event) => {
   saveUsers();
   registerForm.reset();
   loginEmailInput.value = email;
-  setLoginRole(role);
+  setLoginRole("user");
   showLoginView();
   setAuthMessage("Kayit tamamlandi. Simdi giris yapabilirsin.", true);
 });
@@ -503,7 +514,8 @@ loginForm.addEventListener("submit", (event) => {
 
   const email = loginEmailInput.value.trim().toLocaleLowerCase("tr-TR");
   const password = loginPasswordInput.value;
-  const user = users.find(
+  const knownUsers = [...ADMIN_USERS, ...users];
+  const user = knownUsers.find(
     (item) => item.email === email && item.password === password && item.role === selectedLoginRole,
   );
 
