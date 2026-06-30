@@ -14,6 +14,8 @@ tarayici tabanli bir yonetim paneli.
 - Ozet istatistikler
 - Open-Meteo API ile lokasyona gore hava durumu cekme
 - Ticketmaster API ile sehre gore konser listeleme
+- Konser kartlarinda API'den gelen etkinlik fotograflari
+- Manifest, Melike Sahin ve benzeri sanatcilar icin hizli arama butonlari
 - LocalStorage ile veri saklama
 - Mobil uyumlu arayuz
 

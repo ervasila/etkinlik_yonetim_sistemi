@@ -158,10 +158,21 @@
             <input id="ticketmasterKey" type="password" placeholder="API key gir" autocomplete="off" />
           </label>
           <label>
+            Sanatci / Konser
+            <input id="concertKeyword" type="text" placeholder="Orn. Melike Sahin" />
+          </label>
+          <label>
             Sehir
             <input id="concertCity" type="text" placeholder="Orn. Istanbul" value="Istanbul" />
           </label>
           <button class="primary-button" id="fetchConcerts" type="button">Konserleri Getir</button>
+        </div>
+
+        <div class="artist-chips" aria-label="Hizli sanatci aramalari">
+          <button type="button" data-artist="Manifest">Manifest</button>
+          <button type="button" data-artist="Melike Sahin">Melike Sahin</button>
+          <button type="button" data-artist="Mabel Matiz">Mabel Matiz</button>
+          <button type="button" data-artist="Duman">Duman</button>
         </div>
 
         <p class="api-status" id="concertStatus">API key girip sehir yazarak konserleri listeleyebilirsin.</p>

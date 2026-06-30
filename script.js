@@ -82,10 +82,12 @@ const timeInput = document.querySelector("#time");
 const locationInput = document.querySelector("#location");
 const capacityInput = document.querySelector("#capacity");
 const ticketmasterKeyInput = document.querySelector("#ticketmasterKey");
+const concertKeywordInput = document.querySelector("#concertKeyword");
 const concertCityInput = document.querySelector("#concertCity");
 const fetchConcertsButton = document.querySelector("#fetchConcerts");
 const concertStatus = document.querySelector("#concertStatus");
 const concertList = document.querySelector("#concertList");
+const artistChips = document.querySelector(".artist-chips");
 
 let events = JSON.parse(localStorage.getItem(STORAGE_KEY)) || sampleEvents;
 
@@ -277,13 +279,24 @@ function renderConcerts(concerts) {
     const venue = concert._embedded?.venues?.[0];
     const date = concert.dates?.start?.localDate;
     const time = concert.dates?.start?.localTime;
+    const image = concert.images?.find((item) => item.ratio === "16_9") || concert.images?.[0];
     const card = document.createElement("article");
+    const content = document.createElement("div");
+    const poster = document.createElement("img");
     const title = document.createElement("h3");
     const dateText = document.createElement("p");
     const venueText = document.createElement("p");
     const link = document.createElement("a");
 
     card.className = "concert-card";
+    content.className = "concert-card-content";
+
+    if (image?.url) {
+      poster.src = image.url;
+      poster.alt = `${concert.name} konser gorseli`;
+      card.appendChild(poster);
+    }
+
     title.textContent = concert.name;
     dateText.textContent = formatConcertDate(date, time);
     venueText.textContent = `${venue?.name || "Mekan belirtilmemis"}${
@@ -294,7 +307,8 @@ function renderConcerts(concerts) {
     link.rel = "noreferrer";
     link.textContent = "Detaylari Ac";
 
-    card.append(title, dateText, venueText, link);
+    content.append(title, dateText, venueText, link);
+    card.appendChild(content);
 
     concertList.appendChild(card);
   });
@@ -302,6 +316,7 @@ function renderConcerts(concerts) {
 
 async function fetchConcerts() {
   const apiKey = ticketmasterKeyInput.value.trim();
+  const keyword = concertKeywordInput.value.trim();
   const city = concertCityInput.value.trim();
 
   concertStatus.classList.remove("error");
@@ -334,6 +349,10 @@ async function fetchConcerts() {
     url.searchParams.set("size", "6");
     url.searchParams.set("locale", "*");
 
+    if (keyword) {
+      url.searchParams.set("keyword", keyword);
+    }
+
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -358,6 +377,23 @@ concertCityInput.addEventListener("keydown", (event) => {
   if (event.key === "Enter") {
     fetchConcerts();
   }
+});
+
+concertKeywordInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    fetchConcerts();
+  }
+});
+
+artistChips.addEventListener("click", (event) => {
+  const chip = event.target.closest("[data-artist]");
+
+  if (!chip) {
+    return;
+  }
+
+  concertKeywordInput.value = chip.dataset.artist;
+  fetchConcerts();
 });
 
 form.addEventListener("submit", (event) => {
