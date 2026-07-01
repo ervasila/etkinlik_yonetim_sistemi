@@ -276,7 +276,7 @@ function formatPriceRange(priceRanges) {
   const price = priceRanges?.[0];
 
   if (!price || typeof price.min !== "number") {
-    return "Fiyat bilgisi API'de paylasilmadi.";
+    return "Bilet seciminde netlesecek.";
   }
 
   const currency = price.currency || "TRY";
@@ -363,7 +363,7 @@ function renderCart() {
 
   cartSummary.textContent = `${totalTickets} bilet`;
   cartTotal.textContent = unknownPriceTickets
-    ? `Toplam: ${formattedTotal} + ${unknownPriceTickets} bilet icin fiyat yok`
+    ? `Toplam: ${formattedTotal} + ${unknownPriceTickets} bilet beklemede`
     : `Toplam: ${formattedTotal}`;
   cartEmpty.classList.toggle("hidden", cartItems.length > 0);
   cartList.innerHTML = "";
