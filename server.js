@@ -94,7 +94,44 @@ async function handleConcerts(request, response) {
       return;
     }
 
-    sendJson(response, 200, data);
+    const events = data._embedded?.events || [];
+    const enrichedEvents = await Promise.all(
+      events.map(async (event) => {
+        if (event.priceRanges?.length) {
+          return event;
+        }
+
+        const detailUrl = new URL(`https://app.ticketmaster.com/discovery/v2/events/${event.id}.json`);
+        detailUrl.searchParams.set("apikey", TICKETMASTER_API_KEY);
+        detailUrl.searchParams.set("locale", "*");
+
+        try {
+          const detailResponse = await fetch(detailUrl);
+
+          if (!detailResponse.ok) {
+            return event;
+          }
+
+          const detail = await detailResponse.json();
+          return {
+            ...event,
+            priceRanges: detail.priceRanges || event.priceRanges,
+            info: detail.info || event.info,
+            pleaseNote: detail.pleaseNote || event.pleaseNote,
+          };
+        } catch (error) {
+          return event;
+        }
+      }),
+    );
+
+    sendJson(response, 200, {
+      ...data,
+      _embedded: {
+        ...data._embedded,
+        events: enrichedEvents,
+      },
+    });
   } catch (error) {
     sendJson(response, 502, { message: "Ticketmaster servisine ulasilamadi." });
   }

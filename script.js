@@ -276,7 +276,7 @@ function formatPriceRange(priceRanges) {
   const price = priceRanges?.[0];
 
   if (!price || typeof price.min !== "number") {
-    return "Fiyat bilgisi Biletix/Ticketmaster tarafindan paylasilmadi.";
+    return "Fiyat bilgisi API'de paylasilmadi.";
   }
 
   const currency = price.currency || "TRY";

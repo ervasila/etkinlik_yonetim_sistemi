@@ -23,6 +23,7 @@ tarayici tabanli bir yonetim paneli.
 - Konser kartlarinda API'den gelen etkinlik fotograflari
 - Konser sonucunda gorsel yoksa otomatik yedek konser gorseli
 - Konser kartlarinda fiyat bilgisi alani
+- Liste sonucunda fiyat yoksa Ticketmaster detay endpoint'inden fiyat denemesi
 - Konser tarihi icin hava durumu alani
 - Biletix'e yonlendirmeden uygulama ici sepet arayuzu
 - Sepette toplam fiyat hesaplama
