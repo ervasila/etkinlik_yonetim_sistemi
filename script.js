@@ -14,7 +14,7 @@ const DEFAULT_CONCERT_IMAGES = [
   {
     keyword: "manifest",
     wikiTitle: "",
-    url: "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1200&q=80",
+    url: "https://www.gazetebirlik.com/cropImages/1280x/uploads/haberler/2025/4/2492-turkiyenin-yeni-girl-bandi-manifestten-album-mujdesi-ve-festival-surprizi.jpg",
   },
   {
     keyword: "mabel",
